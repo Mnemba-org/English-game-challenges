@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tense Identification Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to right, #fff0f5, #e1f5fe);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #c2185b;
+    }
+
+    #question {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 25px 0;
+    }
+
+    .option {
+      display: block;
+      margin: 10px 0;
+      padding: 12px;
+      background-color: white;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .option:hover {
+      background-color: #fce4ec;
+    }
+
+    .correct {
+      background-color: #c8e6c9 !important;
+      border-color: #2e7d32;
+    }
+
+    .wrong {
+      background-color: #ffcdd2 !important;
+      border-color: #c62828;
+    }
+
+    .option.correct::after,
+    .option.wrong::after {
+      content: attr(data-icon);
+      float: right;
+    }
+
+    #timer {
+      color: #d32f2f;
+      font-weight: bold;
+      float: right;
+    }
+
+    #progress-info {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    #buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #start-game {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    #start-game:hover {
+      background-color: #f57c00;
+    }
+
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      display: none;
+    }
+
+    #go-home {
+      background-color: #2196F3;
+      color: white;
+    }
+
+    #play-again:hover {
+      background-color: #388e3c;
+    }
+
+    #go-home:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎯 Tense Identification</h2>
+
+  <div id="progress-info" style="display: none;">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="timer">Time: 15s</span>
+    <span id="score" style="float: left;">Score: 0</span>
+  </div>
+
+  <div id="question">Click "Start Game" to begin.</div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="buttons">
+    <button id="start-game" onclick="startGame()">▶️ Start Game</button>
+    <button id="play-again" onclick="startGame()">🔁 Try Again</button>
+    <button id="go-home" onclick="goBack()">🏠 Back to Challenges</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "She is cooking dinner.",
+        answer: "Present Continuous",
+        options: ["Present Simple", "Present Continuous", "Past Perfect", "Future Simple"]
+      },
+      {
+        text: "They went to the market yesterday.",
+        answer: "Past Simple",
+        options: ["Past Perfect", "Present Perfect", "Past Simple", "Future Perfect"]
+      },
+      {
+        text: "I will visit my friend tomorrow.",
+        answer: "Future Simple",
+        options: ["Present Simple", "Future Simple", "Present Continuous", "Past Continuous"]
+      },
+      {
+        text: "He had finished his homework before dinner.",
+        answer: "Past Perfect",
+        options: ["Past Simple", "Past Perfect", "Future Continuous", "Present Perfect"]
+      },
+      {
+        text: "They have lived here for five years.",
+        answer: "Present Perfect",
+        options: ["Present Perfect", "Past Perfect", "Past Continuous", "Future Perfect"]
+      },
+      {
+        text: "We are studying English now.",
+        answer: "Present Continuous",
+        options: ["Past Continuous", "Present Continuous", "Future Simple", "Present Perfect"]
+      },
+      {
+        text: "By next year, I will have graduated.",
+        answer: "Future Perfect",
+        options: ["Future Perfect", "Future Continuous", "Present Simple", "Past Simple"]
+      },
+      {
+        text: "She was reading a book when I arrived.",
+        answer: "Past Continuous",
+        options: ["Past Perfect", "Past Continuous", "Present Simple", "Present Continuous"]
+      },
+      {
+        text: "He goes to work by train.",
+        answer: "Present Simple",
+        options: ["Present Simple", "Past Simple", "Present Perfect", "Future Simple"]
+      },
+      {
+        text: "We will be staying at a hotel.",
+        answer: "Future Continuous",
+        options: ["Present Continuous", "Future Continuous", "Past Perfect", "Past Continuous"]
+      }
+    ];
+
+    let shuffled = [];
+    let current = 0;
+    let score = 0;
+    let timeLeft = 15;
+    let timer;
+    let gameOver = false;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      shuffled = shuffle([...questions]);
+      current = 0;
+      score = 0;
+      gameOver = false;
+      document.getElementById("score").textContent = "Score: 0";
+      document.getElementById("play-again").style.display = "none";
+      document.getElementById("start-game").style.display = "none";
+      document.getElementById("progress-info").style.display = "block";
+      showQuestion();
+    }
+
+    function showQuestion() {
+      timeLeft = 15;
+      updateTimer();
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", shuffled[current].answer, null);
+        }
+      }, 1000);
+
+      const q = shuffled[current];
+      document.getElementById("question").textContent = q.text;
+      document.getElementById("current-question").textContent = `Question ${current + 1} of 10`;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      const shuffledOptions = shuffle([...q.options]);
+      shuffledOptions.forEach(opt => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt, q.answer, btn);
+        optionsDiv.appendChild(btn);
+      });
+
+      document.getElementById("result").textContent = "";
+    }
+
+    function updateTimer() {
+      document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const allOptions = document.querySelectorAll(".option");
+      allOptions.forEach(opt => opt.onclick = null);
+
+      if (selected === correct) {
+        if (element) {
+          element.classList.add("correct");
+          element.setAttribute("data-icon", "✔️");
+        }
+        score++;
+        document.getElementById("score").textContent = `Score: ${score}`;
+      } else {
+        if (element) {
+          element.classList.add("wrong");
+          element.setAttribute("data-icon", "❌");
+        }
+        allOptions.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+            opt.setAttribute("data-icon", "✔️");
+          }
+        });
+      }
+
+      setTimeout(() => {
+        current++;
+        if (current < 10) {
+          showQuestion();
+        } else {
+          showFinal();
+        }
+      }, 1200);
+    }
+
+    function showFinal() {
+      gameOver = true;
+      document.getElementById("question").textContent = `🎉 You scored ${score}/10`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("result").textContent = "";
+      document.getElementById("timer").textContent = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("start-game").style.display = "inline-block";
+    }
+
+    function goBack() {
+      if (!gameOver) {
+        const confirmExit = confirm("Game is in progress. Are you sure you want to go back? Your progress will be lost.");
+        if (!confirmExit) return;
+      }
+      window.location.href = "challenges.html";
+    }
+  </script>
+</body>
+</html>

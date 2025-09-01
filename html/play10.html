@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grammar Fix Challenge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to right, #fff9f0, #d0e7ff);
+      color: #222;
+    }
+    h2 {
+      text-align: center;
+      color: #34495e;
+    }
+    #question {
+      font-size: 20px;
+      margin: 25px 0;
+      font-weight: bold;
+    }
+    .option {
+      display: block;
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .option:hover {
+      background-color: #e8f0ff;
+    }
+    .option.correct {
+      background-color: #b9f6ca;
+      border-color: #2e7d32;
+    }
+    .option.wrong {
+      background-color: #ffcdd2;
+      border-color: #c62828;
+    }
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    #progress-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    #progress-info span {
+      margin-right: 15px;
+    }
+    #result {
+      margin: 20px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+    #score-area {
+      text-align: center;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      display: none;
+    }
+    #play-again:hover {
+      background-color: #45a049;
+    }
+    #go-home {
+      background-color: #2196F3;
+      color: white;
+      display: none;
+    }
+    #go-home:hover {
+      background-color: #1976d2;
+    }
+    #timer {
+      float: right;
+      font-weight: bold;
+      color: #e53935;
+    }
+    #start-btn {
+      display: block;
+      margin: 40px auto;
+      background-color: #ff9800;
+      color: white;
+    }
+    #start-btn:hover {
+      background-color: #fb8c00;
+    }
+    #go-challenges {
+      background-color: #2196F3;
+      color: white;
+      display: block;
+      width: 100%;
+      max-width: 200px;
+      margin: 30px auto 0 auto;
+    }
+    #go-challenges:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Grammar Fix</h2>
+
+  <button id="start-btn" onclick="startGame()">▶️ Start Game</button>
+
+  <div id="progress-info" style="display:none;">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="current-score">Score: 0</span>
+    <span id="timer">Time: 15s</span>
+  </div>
+
+  <div id="question"></div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="score-area" style="text-align:center;">
+    <button id="play-again" onclick="startGame()">🔁 Play Again</button>
+    <button id="go-home" onclick="confirmQuit()">🏠 Back to Challenges</button>
+  </div>
+
+  <!-- Always visible Back to Challenges button below everything -->
+  <button id="go-challenges" onclick="confirmQuit()">🏠 Go to Challenges</button>
+
+  <script>
+    const questions = [
+      { sentence: "She ___ to school every day.", correct: "goes", options: ["go", "going", "goes", "gone"] },
+      { sentence: "They ___ playing football now.", correct: "are", options: ["is", "am", "are", "were"] },
+      { sentence: "I have ___ my lunch.", correct: "eaten", options: ["ate", "eat", "eaten", "eating"] },
+      { sentence: "He ___ not like apples.", correct: "does", options: ["don't", "does", "did", "is"] },
+      { sentence: "We ___ to the market yesterday.", correct: "went", options: ["go", "gone", "went", "going"] },
+      { sentence: "She ___ very happy today.", correct: "is", options: ["am", "are", "is", "be"] },
+      { sentence: "The children ___ watching TV.", correct: "are", options: ["is", "am", "are", "was"] },
+      { sentence: "He ___ his homework before dinner.", correct: "finished", options: ["finish", "finished", "finishing", "finishes"] },
+      { sentence: "I ___ a sandwich for lunch.", correct: "ate", options: ["eat", "ate", "eats", "eating"] },
+      { sentence: "They ___ going to the party.", correct: "are", options: ["is", "are", "am", "was"] }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 10;
+    let gameActive = false;
+
+    function startGame() {
+      current = 0;
+      score = 0;
+      timeLeft = 10;
+      gameActive = true;
+
+      document.getElementById("start-btn").style.display = "none";
+      document.getElementById("progress-info").style.display = "block";
+      document.getElementById("play-again").style.display = "none";
+      document.getElementById("go-home").style.display = "none";
+      document.getElementById("result").textContent = "";
+      document.getElementById("current-score").textContent = "Score: 0";
+      document.getElementById("current-question").textContent = "Question 1 of 10";
+      document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+
+      showQuestion();
+      startTimer();
+    }
+
+    function showQuestion() {
+      const q = questions[current];
+      document.getElementById("question").textContent = q.sentence;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.correct, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null);
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+        document.getElementById("current-score").textContent = `Score: ${score}`;
+      } else {
+        element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      setTimeout(() => {
+        current++;
+        if (current < questions.length) {
+          timeLeft = 10;
+          document.getElementById("current-question").textContent = `Question ${current + 1} of 10`;
+          document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+          showQuestion();
+          startTimer();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", questions[current].correct, document.createElement("div"));
+        }
+      }, 1000);
+    }
+
+    function showFinalScore() {
+      gameActive = false;
+      document.getElementById("question").textContent = `🎉 You scored ${score} out of ${questions.length}`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("go-home").style.display = "inline-block";
+      document.getElementById("timer").textContent = "";
+      document.getElementById("result").textContent = "";
+    }
+
+    function confirmQuit() {
+      if (gameActive) {
+        const confirmLeave = confirm("Are you sure you want to quit the game?");
+        if (!confirmLeave) return;
+      }
+      window.location.href = "challenges.html";
+    }
+  </script>
+
+</body>
+</html>

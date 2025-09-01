@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plural or Singular Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 25px;
+      background: #f0f9ff;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #007acc;
+    }
+
+    #status {
+      margin-bottom: 10px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #question {
+      font-size: 20px;
+      margin: 25px 0;
+    }
+
+    .option {
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .option:hover {
+      background-color: #e0f7ff;
+    }
+
+    .option.correct {
+      background-color: #d4edda;
+      border-color: #28a745;
+    }
+
+    .option.wrong {
+      background-color: #f8d7da;
+      border-color: #dc3545;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    #score-area {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #start-game {
+      background-color: #007acc;
+      color: white;
+    }
+
+    #restart {
+      background-color: #007acc;
+      color: white;
+      display: none;
+    }
+
+    #go-home {
+      background-color: #28a745;
+      color: white;
+      display: inline-block;
+    }
+
+    #start-game:hover,
+    #restart:hover {
+      background-color: #005f99;
+    }
+
+    #go-home:hover {
+      background-color: #1e7e34;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Plural or Singular Quiz</h2>
+
+<div id="status">
+  <div id="question-number">Question 1/10</div>
+  <div id="score">Score: 0/10</div>
+</div>
+
+<div id="question">Click "Start Game" to begin.</div>
+<div id="options"></div>
+<div id="result"></div>
+
+<div id="score-area">
+  <button id="start-game" onclick="startGame()">▶️ Start Game</button>
+  <button id="restart" onclick="startGame()">🔁 Restart</button>
+  <button id="go-home" onclick="goToHomePage()">🏠 Back to Challenges</button>
+</div>
+
+<script>
+  const questions = [
+    { word: "Apples", answer: "Plural" },
+    { word: "Dog", answer: "Singular" },
+    { word: "Books", answer: "Plural" },
+    { word: "Child", answer: "Singular" },
+    { word: "Children", answer: "Plural" },
+    { word: "Foot", answer: "Singular" },
+    { word: "Feet", answer: "Plural" },
+    { word: "Chair", answer: "Singular" },
+    { word: "Cars", answer: "Plural" },
+    { word: "Mouse", answer: "Singular" },
+    { word: "Mice", answer: "Plural" },
+    { word: "Person", answer: "Singular" },
+    { word: "People", answer: "Plural" },
+    { word: "Box", answer: "Singular" },
+    { word: "Boxes", answer: "Plural" }
+  ];
+
+  let gameQuestions = [];
+  let current = 0;
+  let score = 0;
+  let gameOver = true;
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function startGame() {
+    gameQuestions = shuffle([...questions]).slice(0, 10);
+    current = 0;
+    score = 0;
+    gameOver = false;
+
+    document.getElementById("restart").style.display = "none";
+    document.getElementById("result").textContent = "";
+    document.getElementById("start-game").style.display = "none";
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = gameQuestions[current];
+    document.getElementById("question").textContent = `Is "${q.word}" singular or plural?`;
+    document.getElementById("question-number").textContent = `Question ${current + 1}/10`;
+    document.getElementById("score").textContent = `Score: ${score}/10`;
+
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+
+    ["Singular", "Plural"].forEach(choice => {
+      const div = document.createElement("div");
+      div.className = "option";
+      div.textContent = choice;
+      div.onclick = () => checkAnswer(choice, q.answer, div);
+      optionsDiv.appendChild(div);
+    });
+  }
+
+  function checkAnswer(selected, correct, element) {
+    const options = document.querySelectorAll(".option");
+    options.forEach(opt => opt.onclick = null);
+
+    if (selected === correct) {
+      element.classList.add("correct");
+      score++;
+    } else {
+      element.classList.add("wrong");
+      options.forEach(opt => {
+        if (opt.textContent === correct) {
+          opt.classList.add("correct");
+        }
+      });
+    }
+
+    document.getElementById("score").textContent = `Score: ${score}/10`;
+
+    setTimeout(() => {
+      current++;
+      if (current < 10) {
+        showQuestion();
+      } else {
+        showFinalScore();
+      }
+    }, 1000);
+  }
+
+  function showFinalScore() {
+    gameOver = true;
+    document.getElementById("question").textContent = `🎉 You got ${score}/10 correct!`;
+    document.getElementById("options").innerHTML = "";
+    document.getElementById("restart").style.display = "inline-block";
+    document.getElementById("start-game").style.display = "inline-block";
+  }
+
+  function goToHomePage() {
+    if (!gameOver) {
+      const confirmExit = confirm("Game is in progress. Are you sure you want to go back? Your progress will be lost.");
+      if (!confirmExit) return;
+    }
+    window.location.href = "challenges.html";
+  }
+</script>
+
+</body>
+</html>

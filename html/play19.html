@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Conversation Practice Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 25px;
+      background: linear-gradient(to right, #f0f4f7, #dfe9f3);
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    #score-timer {
+      margin: 15px 0;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    #chatbox {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      height: 300px;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 10px;
+      max-width: 80%;
+      clear: both;
+    }
+    .bot {
+      background: #dff0fc;
+      float: left;
+    }
+    .user {
+      background: #e8f5e9;
+      float: right;
+    }
+    .option {
+      background: #fff;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px 0;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .option:hover {
+      background: #ecf0f1;
+    }
+    .correct {
+      border-color: green;
+      background-color: #d4edda;
+    }
+    .wrong {
+      border-color: red;
+      background-color: #f8d7da;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="title">Conversation Practice</h2>
+
+  <div id="score-timer">
+    Score: <span id="score">0</span>/<span id="total">0</span> &nbsp;&nbsp; | &nbsp;&nbsp; Time left: <span id="timer">0</span>s
+  </div>
+
+  <div id="chatbox"></div>
+  <div id="options"></div>
+
+  <script>
+    const conversations = [
+      {
+        title: "At the Shop",
+        time: 60,
+        steps: [
+          {
+            text: "How do you ask for the price of something?",
+            options: [
+              { text: "How much is this?", correct: true },
+              { text: "How many is this?", correct: false },
+              { text: "What cost is this?", correct: false },
+            ]
+          },
+          {
+            text: "You want to say you don’t have money. Which is correct?",
+            options: [
+              { text: "I don’t have money", correct: true },
+              { text: "I haven’t money", correct: false },
+              { text: "I no have money", correct: false },
+            ]
+          },
+          {
+            text: "How do you ask if there’s a discount?",
+            options: [
+              { text: "Do you have a discount?", correct: true },
+              { text: "Can I get discount?", correct: false },
+              { text: "You make cheap?", correct: false },
+            ]
+          },
+          {
+            text: "How do you say you are just looking around?",
+            options: [
+              { text: "I’m just looking, thank you", correct: true },
+              { text: "I only look", correct: false },
+              { text: "I am seeing only", correct: false },
+            ]
+          },
+          {
+            text: "You want to buy something. What’s the correct sentence?",
+            options: [
+              { text: "I would like to buy this", correct: true },
+              { text: "I like buy this", correct: false },
+              { text: "I want buying this", correct: false },
+            ]
+          }
+        ]
+      },
+      {
+        title: "At the Bus Station",
+        time: 60,
+        steps: [
+          {
+            text: "You're on the bus and want to get off. What do you say to the conductor?",
+            options: [
+              { text: "Drop me here, please", correct: true },
+              { text: "Put me down, please", correct: false },
+              { text: "Remove me here", correct: false },
+            ]
+          },
+          {
+            text: "How do you ask politely where the bus is going?",
+            options: [
+              { text: "Excuse me, where is this bus heading?", correct: true },
+              { text: "Where bus go?", correct: false },
+              { text: "This bus to?", correct: false },
+            ]
+          },
+          {
+            text: "How do you ask for the fare?",
+            options: [
+              { text: "How much is the fare?", correct: true },
+              { text: "How cost to go?", correct: false },
+              { text: "What pay for this?", correct: false },
+            ]
+          },
+          {
+            text: "You're late and need to get off quickly. What do you say?",
+            options: [
+              { text: "Please stop, I’m getting off here!", correct: true },
+              { text: "You stop now, I go!", correct: false },
+              { text: "You put me down here", correct: false },
+            ]
+          },
+          {
+            text: "What do you say when thanking the driver?",
+            options: [
+              { text: "Thank you for the ride", correct: true },
+              { text: "Thanks you for ride", correct: false },
+              { text: "I thank ride", correct: false },
+            ]
+          }
+        ]
+      },
+      {
+        title: "At the Hospital",
+        time: 60,
+        steps: [
+          {
+            text: "You’re feeling sick. What do you say?",
+            options: [
+              { text: "I don’t feel well", correct: true },
+              { text: "I no feel good", correct: false },
+              { text: "I not fine", correct: false },
+            ]
+          },
+          {
+            text: "How do you ask to see a doctor?",
+            options: [
+              { text: "Can I see a doctor?", correct: true },
+              { text: "Show me doctor", correct: false },
+              { text: "I want doctor now", correct: false },
+            ]
+          },
+          {
+            text: "You need medicine. What do you say?",
+            options: [
+              { text: "Can I get some medicine, please?", correct: true },
+              { text: "Give me drugs", correct: false },
+              { text: "I take medical", correct: false },
+            ]
+          },
+          {
+            text: "What do you say after seeing the doctor?",
+            options: [
+              { text: "Thank you, doctor", correct: true },
+              { text: "Thanks for medicine", correct: false },
+              { text: "I go now doctor", correct: false },
+            ]
+          }
+        ]
+      },
+      {
+        title: "At the Restaurant",
+        time: 60,
+        steps: [
+          {
+            text: "How do you ask for a menu?",
+            options: [
+              { text: "Can I have a menu, please?", correct: true },
+              { text: "Give menu", correct: false },
+              { text: "I want menu now", correct: false },
+            ]
+          },
+          {
+            text: "You want to order food. What do you say?",
+            options: [
+              { text: "I’d like to order now", correct: true },
+              { text: "Give me food", correct: false },
+              { text: "I order it now", correct: false },
+            ]
+          },
+          {
+            text: "You don’t eat meat. How do you explain?",
+            options: [
+              { text: "I don’t eat meat", correct: true },
+              { text: "I no eat meat", correct: false },
+              { text: "Me not meat eater", correct: false },
+            ]
+          },
+          {
+            text: "How do you ask for the bill?",
+            options: [
+              { text: "Can I have the bill, please?", correct: true },
+              { text: "Give me money paper", correct: false },
+              { text: "I want pay paper", correct: false },
+            ]
+          }
+        ]
+      },
+      {
+        title: "At the Stadium",
+        time: 60,
+        steps: [
+          {
+            text: "You want to ask who is playing. What do you say?",
+            options: [
+              { text: "Who is playing today?", correct: true },
+              { text: "Which team play?", correct: false },
+              { text: "Who are the play?", correct: false },
+            ]
+          },
+          {
+            text: "You’re cheering your team. What do you say?",
+            options: [
+              { text: "Go team go!", correct: true },
+              { text: "Move fast!", correct: false },
+              { text: "Run now!", correct: false },
+            ]
+          },
+          {
+            text: "You want to know the score. What do you ask?",
+            options: [
+              { text: "What’s the score?", correct: true },
+              { text: "Tell score", correct: false },
+              { text: "Score how?", correct: false },
+            ]
+          },
+          {
+            text: "You want to buy a ticket. What do you say?",
+            options: [
+              { text: "Can I get a ticket, please?", correct: true },
+              { text: "I want game entry", correct: false },
+              { text: "Give me ticket now", correct: false },
+            ]
+          }
+        ]
+      }
+    ];
+
+    let currentConversation = 0;
+    let stepIndex = 0;
+    let score = 0;
+    let total = 0;
+    let timer;
+    let timeLeft;
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function loadConversation() {
+      const conv = conversations[currentConversation];
+      document.getElementById("title").textContent = "Conversation Practice: " + conv.title;
+      timeLeft = conv.time;
+      total = conv.steps.length;
+      stepIndex = 0;
+      document.getElementById("score").textContent = score;
+      document.getElementById("total").textContent = total;
+      document.getElementById("chatbox").innerHTML = "";
+      startTimer();
+      showStep();
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      document.getElementById("timer").textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          endConversation();
+        }
+      }, 1000);
+    }
+
+    function displayMessage(text, speaker) {
+      const div = document.createElement("div");
+      div.className = `message ${speaker}`;
+      div.textContent = text;
+      document.getElementById("chatbox").appendChild(div);
+      document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
+    }
+
+    function showStep() {
+      const conv = conversations[currentConversation];
+      if (stepIndex >= conv.steps.length) return endConversation();
+
+      const step = conv.steps[stepIndex];
+      displayMessage(step.text, "bot");
+      document.getElementById("options").innerHTML = "";
+
+      const shuffledOptions = shuffleArray([...step.options]);
+
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option.text;
+        btn.onclick = () => handleAnswer(btn, option, step);
+        document.getElementById("options").appendChild(btn);
+      });
+    }
+
+    function handleAnswer(btn, selectedOption, step) {
+      document.querySelectorAll(".option").forEach(b => b.onclick = null);
+
+      if (selectedOption.correct) {
+        btn.classList.add("correct");
+        score++;
+      } else {
+        btn.classList.add("wrong");
+        const correctText = step.options.find(o => o.correct).text;
+        document.querySelectorAll(".option").forEach(b => {
+          if (b.textContent === correctText) {
+            b.classList.add("correct");
+          }
+        });
+      }
+
+      document.getElementById("score").textContent = score;
+      displayMessage(selectedOption.text, "user");
+
+      setTimeout(() => {
+        stepIndex++;
+        showStep();
+      }, 1000);
+    }
+
+    function endConversation() {
+      clearInterval(timer);
+      displayMessage("End of conversation!", "bot");
+      document.getElementById("options").innerHTML = "";
+      currentConversation++;
+      if (currentConversation < conversations.length) {
+        setTimeout(loadConversation, 2000);
+      } else {
+        const totalSteps = conversations.reduce((acc, c) => acc + c.steps.length, 0);
+        document.getElementById("chatbox").innerHTML += `<div class='message bot'><strong>Game Over! Your total score is ${score}/${totalSteps}</strong></div>`;
+      }
+    }
+
+    loadConversation();
+  </script>
+  <a href="challenges.html"><button>🏠 Back to Challenges</button></a>
+</body>
+</html>

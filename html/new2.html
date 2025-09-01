@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Listen and Speak Understanding Grader</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #eef2f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .container {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    max-width: 600px;
+    width: 90%;
+    text-align: center;
+  }
+  button {
+    background-color: #1e88e5;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    margin: 10px 0;
+    width: 100%;
+  }
+  button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+  #status, #userSpeech, #score {
+    margin-top: 15px;
+    font-weight: 600;
+    color: #333;
+    min-height: 50px;
+  }
+  #score {
+    font-size: 24px;
+    color: #1e88e5;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Listen to Story and Speak Your Understanding</h2>
+  <button id="playStoryBtn">Play Story (Listen only)</button>
+  <button id="startSpeakingBtn" disabled>Start Speaking Your Understanding</button>
+  <button id="stopSpeakingBtn" disabled>Stop Speaking</button>
+  <div id="status"></div>
+  <div id="userSpeech"></div>
+  <div id="score"></div>
+</div>
+
+<script>
+  const playStoryBtn = document.getElementById('playStoryBtn');
+  const startSpeakingBtn = document.getElementById('startSpeakingBtn');
+  const stopSpeakingBtn = document.getElementById('stopSpeakingBtn');
+  const statusDiv = document.getElementById('status');
+  const userSpeechDiv = document.getElementById('userSpeech');
+  const scoreDiv = document.getElementById('score');
+
+  const story = `Jackson was a curious boy living in a quiet town surrounded by mountains and rivers. Every morning, he would wake up early to explore the forests near his home. One day, during his adventures, Jackson discovered a hidden cave filled with ancient drawings and mysterious symbols. Fascinated by his discovery, he decided to learn more about the history of his town and the people who lived there long ago. As he dug deeper, Jackson found that these symbols told stories of courage, friendship, and respect for nature. Inspired, he shared these tales with his friends and family, reminding everyone about the importance of protecting their environment and cherishing their heritage. Jackson's journey taught him that knowledge and respect for the past can help build a better future for all.`;
+
+  // Play story with TTS - no text shown
+  function playStory() {
+    if (!window.speechSynthesis) {
+      alert('Your browser does not support Speech Synthesis API.');
+      return;
+    }
+    statusDiv.textContent = 'Playing story... Listen carefully.';
+    userSpeechDiv.textContent = '';
+    scoreDiv.textContent = '';
+    startSpeakingBtn.disabled = true;
+    stopSpeakingBtn.disabled = true;
+    playStoryBtn.disabled = true;
+
+    const utterance = new SpeechSynthesisUtterance(story);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+
+    utterance.onend = () => {
+      statusDiv.textContent = 'Story ended. You can now speak your understanding.';
+      startSpeakingBtn.disabled = false;
+      playStoryBtn.disabled = false;
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Speech Recognition setup
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition;
+  let finalTranscript = '';
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+  } else {
+    alert('Your browser does not support Speech Recognition API.');
+    startSpeakingBtn.disabled = true;
+  }
+
+  // Start listening user speak
+  function startSpeaking() {
+    finalTranscript = '';
+    userSpeechDiv.textContent = '';
+    scoreDiv.textContent = '';
+    statusDiv.textContent = 'Listening... Speak your understanding now.';
+    startSpeakingBtn.disabled = true;
+    stopSpeakingBtn.disabled = false;
+    playStoryBtn.disabled = true;
+
+    recognition.start();
+  }
+
+  // Stop listening
+  function stopSpeaking() {
+    recognition.stop();
+    stopSpeakingBtn.disabled = true;
+    startSpeakingBtn.disabled = false;
+    playStoryBtn.disabled = false;
+    statusDiv.textContent = 'Stopped listening.';
+  }
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if(event.results[i].isFinal){
+        finalTranscript += event.results[i][0].transcript + ' ';
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
+    }
+    userSpeechDiv.textContent = `You said: "${finalTranscript + interimTranscript}"`;
+  };
+
+  recognition.onerror = (event) => {
+    statusDiv.textContent = 'Error during speech recognition: ' + event.error;
+    stopSpeakingBtn.disabled = true;
+    startSpeakingBtn.disabled = false;
+    playStoryBtn.disabled = false;
+  };
+
+  recognition.onend = () => {
+    stopSpeakingBtn.disabled = true;
+    startSpeakingBtn.disabled = false;
+    playStoryBtn.disabled = false;
+    if(finalTranscript.trim().length > 0){
+      evaluateUnderstanding(finalTranscript);
+    } else {
+      statusDiv.textContent = 'No speech detected. Please try again.';
+    }
+  };
+
+  // Evaluate user's spoken understanding
+  function evaluateUnderstanding(userText) {
+    const storyWords = story.toLowerCase().replace(/[.,]/g,'').split(/\s+/);
+    const userWords = userText.toLowerCase().replace(/[.,]/g,'').split(/\s+/);
+
+    let matchCount = 0;
+    userWords.forEach(word => {
+      if(storyWords.includes(word)) {
+        matchCount++;
+      }
+    });
+
+    const score = Math.min(10, Math.round((matchCount / userWords.length) * 10));
+    scoreDiv.textContent = `Your understanding score: ${score} / 10`;
+    statusDiv.textContent = 'Evaluation complete.';
+  }
+
+  playStoryBtn.addEventListener('click', playStory);
+  startSpeakingBtn.addEventListener('click', startSpeaking);
+  stopSpeakingBtn.addEventListener('click', stopSpeaking);
+</script>
+  
+<a href="challenges.html"><button>🏠 Back to Challenges</button></a>
+</body>
+</html>

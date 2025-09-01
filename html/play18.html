@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reading Comprehension Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 25px;
+      background: linear-gradient(to right, #fefefe, #eef2f3);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    #timer, #score, #current {
+      font-weight: bold;
+      display: inline-block;
+      margin: 5px 15px 10px 0;
+      color: #34495e;
+    }
+
+    #story {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    #question {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .option {
+      background: #fff;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      padding: 12px 20px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: 0.3s ease;
+      position: relative;
+      font-size: 16px;
+    }
+
+    .option:hover {
+      background-color: #ecf0f1;
+    }
+
+    .option.correct {
+      background-color: #d4edda;
+      border-color: #27ae60;
+    }
+
+    .option.wrong {
+      background-color: #f8d7da;
+      border-color: #c0392b;
+    }
+
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #score-area {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: background 0.3s ease;
+    }
+
+    #play-again {
+      background-color: #27ae60;
+      color: white;
+      display: none;
+    }
+
+    #play-again:hover {
+      background-color: #219150;
+    }
+  </style>
+</head>
+<body>
+  <h2>Reading Comprehension Quiz</h2>
+  <div>
+    <span id="current">Question 1 of 10</span>
+    <span id="score">Score: 0/10</span>
+    <span id="timer">⏱ 180s</span>
+  </div>
+
+  <div id="story">
+    <p><strong>The Unexpected Guest</strong></p>
+    <p>
+      It was a rainy Friday evening. Emma had just kicked off her shoes, ready to binge-watch her favorite series and enjoy some popcorn. 
+      The week had been long, and all she wanted was peace and quiet.
+    </p>
+    <p>
+      Just as she grabbed a blanket and settled on the couch, there was a knock at the door.
+      "Who could that be?" she mumbled, a bit annoyed.
+    </p>
+    <p>
+      Opening the door, she saw a man standing there, completely soaked. His umbrella had flipped inside out, and he looked lost.
+      "Hi, I’m really sorry to bother you," he said. "My car broke down a few blocks from here, and my phone died. Could I use yours to call for help?"
+    </p>
+    <p>
+      Emma hesitated. She wasn’t the type to let strangers in—but the guy looked harmless… and completely miserable.
+      "Uh, sure. Just… wait here a sec," she said, cautiously.
+    </p>
+    <p>
+      She grabbed her old phone and handed it to him through the door. He made a quick call, thanked her, and turned to leave—but slipped on the wet steps.
+    </p>
+  </div>
+
+  <div id="question">Loading question...</div>
+  <div id="options"></div>
+
+  <div id="score-area">
+    <button id="play-again" onclick="startGame()">🔁 Start Again</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Why did Emma want to relax that evening?",
+        correct: "Because she had a long week",
+        options: [
+          "Because she was hungry",
+          "Because she had visitors",
+          "Because she had a long week",
+          "Because she was celebrating"
+        ]
+      },
+      {
+        question: "What was the weather like?",
+        correct: "Rainy",
+        options: ["Sunny", "Windy", "Rainy", "Snowy"]
+      },
+      {
+        question: "What did the man want?",
+        correct: "To use Emma’s phone",
+        options: ["To borrow money", "To use Emma’s phone", "To use the bathroom", "To get directions"]
+      },
+      {
+        question: "How did the man look when Emma opened the door?",
+        correct: "Soaked and lost",
+        options: ["Angry and tired", "Soaked and lost", "Happy and excited", "Clean and dry"]
+      },
+      {
+        question: "What happened after he made the phone call?",
+        correct: "He slipped on the steps",
+        options: ["He ran away", "He went inside", "He slipped on the steps", "He lost the phone"]
+      }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 180;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      currentIndex = 0;
+      score = 0;
+      timeLeft = 180;
+      document.getElementById("score").textContent = `Score: ${score}/10`;
+      document.getElementById("play-again").style.display = "none";
+      startTimer();
+      showQuestion();
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `⏱ ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          showResult();
+        }
+      }, 1000);
+    }
+
+    function showQuestion() {
+      const q = questions[currentIndex];
+      document.getElementById("question").textContent = q.question;
+      document.getElementById("current").textContent = `Question ${currentIndex + 1} of 10`;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      shuffle(q.options).forEach(option => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.textContent = option;
+        div.onclick = () => checkAnswer(option, q.correct, div);
+        optionsDiv.appendChild(div);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null);
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+      } else {
+        element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+      document.getElementById("score").textContent = `Score: ${score}/10`;
+      setTimeout(() => {
+        currentIndex++;
+        if (currentIndex < questions.length && timeLeft > 0) {
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }, 1200);
+    }
+
+    function showResult() {
+      clearInterval(timer);
+      document.getElementById("question").textContent = `🎉 You scored ${score}/10`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("timer").textContent = "";
+    }
+
+    startGame();
+  </script>
+  <a href="challenges.html"><button style="background-color: #c0392b;">🏠 Back to Challenges</button></a>
+</body>
+</html>

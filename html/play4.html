@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find the Synonym</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #ffffff);
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #006064;
+    }
+    #gameArea {
+      position: relative;
+      height: 300px;
+      border: 2px solid #00796b;
+      overflow: hidden;
+      background-color: #e0f2f1;
+      margin: 20px auto;
+      width: 80%;
+      border-radius: 10px;
+    }
+    .option {
+      position: absolute;
+      top: 0;
+      padding: 10px 20px;
+      background-color: #b2dfdb;
+      color: #004d40;
+      border: 2px solid #004d40;
+      border-radius: 8px;
+      cursor: pointer;
+      animation: drop 5s linear forwards;
+      font-weight: bold;
+    }
+    @keyframes drop {
+      to {
+        top: 100%;
+      }
+    }
+    .correct {
+      background-color: #c8e6c9 !important;
+      border-color: #2e7d32 !important;
+      color: #2e7d32 !important;
+    }
+    .wrong {
+      background-color: #ffcdd2 !important;
+      border-color: #c62828 !important;
+      color: #c62828 !important;
+    }
+    #question {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: #004d40;
+    }
+    #feedback {
+      margin: 10px;
+      font-size: 1.1em;
+      font-weight: bold;
+    }
+    #startBtn, #homeBtn {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #00897b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    #startBtn:hover, #homeBtn:hover {
+      background-color: #00695c;
+    }
+    #scoreInfo {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #00695c;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Find the Synonym</h1>
+  <p id="question">Click Start to begin</p>
+  <div id="gameArea"></div>
+  <p id="feedback"></p>
+  <div id="scoreInfo">Round: 0/10 | Score: 0</div>
+  <button id="startBtn">Start Game</button>
+  <button id="homeBtn">🏠 Go to Challenges</button>
+
+  <script>
+    const questions = [
+      { word: "happy", synonym: "joyful", options: ["joyful", "angry", "sleepy", "boring"] },
+      { word: "big", synonym: "large", options: ["tiny", "huge", "short", "large"] },
+      { word: "fast", synonym: "quick", options: ["slow", "quick", "late", "walk"] },
+      { word: "smart", synonym: "intelligent", options: ["dumb", "intelligent", "crazy", "lazy"] },
+      { word: "clean", synonym: "tidy", options: ["dirty", "messy", "tidy", "wet"] },
+      { word: "bright", synonym: "shiny", options: ["shiny", "dark", "dull", "gray"] },
+      { word: "cold", synonym: "chilly", options: ["hot", "chilly", "warm", "boiling"] },
+      { word: "easy", synonym: "simple", options: ["simple", "hard", "tough", "complex"] },
+      { word: "quiet", synonym: "silent", options: ["noisy", "silent", "loud", "talking"] },
+      { word: "beautiful", synonym: "pretty", options: ["ugly", "pretty", "scary", "sad"] },
+    ];
+
+    const gameArea = document.getElementById("gameArea");
+    const questionEl = document.getElementById("question");
+    const feedbackEl = document.getElementById("feedback");
+    const startBtn = document.getElementById("startBtn");
+    const homeBtn = document.getElementById("homeBtn");
+    const scoreInfoEl = document.getElementById("scoreInfo");
+
+    let score = 0;
+    let currentRound = 0;
+    const totalRounds = 10;
+    let currentAnswer = "";
+    let gameInProgress = false;
+
+    startBtn.addEventListener("click", () => {
+      score = 0;
+      currentRound = 0;
+      gameInProgress = true;
+      startBtn.style.display = "none";
+      showNextQuestion();
+    });
+
+    homeBtn.addEventListener("click", () => {
+      if (gameInProgress && currentRound < totalRounds) {
+        const confirmLeave = confirm("Game in progress. Are you sure you want to leave?");
+        if (!confirmLeave) return;
+      }
+      window.location.href = "challenges.html";
+    });
+
+    function showNextQuestion() {
+      if (currentRound >= totalRounds) {
+        questionEl.textContent = "🎉 Game Over!";
+        feedbackEl.textContent = `You scored ${score}/10`;
+        scoreInfoEl.textContent = `Final Score: ${score}/10`;
+        startBtn.style.display = "inline-block";
+        gameInProgress = false;
+        return;
+      }
+
+      gameArea.innerHTML = "";
+      feedbackEl.textContent = "";
+      const q = questions[Math.floor(Math.random() * questions.length)];
+      currentAnswer = q.synonym;
+      currentRound++;
+      scoreInfoEl.textContent = `Round: ${currentRound}/${totalRounds} | Score: ${score}`;
+      questionEl.textContent = `What is the synonym of "${q.word}"?`;
+
+      let answered = false;
+
+      q.options.forEach((opt, i) => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.textContent = opt;
+        div.style.left = `${(i + 1) * 20 + 15}%`;
+
+        div.addEventListener("click", () => {
+          if (answered) return;
+          answered = true;
+
+          const allOptions = [...document.getElementsByClassName('option')];
+          allOptions.forEach(opt => opt.style.pointerEvents = "none");
+
+          if (opt === currentAnswer) {
+            div.classList.add("correct");
+            feedbackEl.textContent = "✅ Correct!";
+            score++;
+          } else {
+            div.classList.add("wrong");
+            feedbackEl.textContent = `❌ Wrong! Correct was "${currentAnswer}"`;
+            allOptions.forEach(opt => {
+              if (opt.textContent === currentAnswer) opt.classList.add("correct");
+            });
+          }
+
+          scoreInfoEl.textContent = `Round: ${currentRound}/${totalRounds} | Score: ${score}`;
+          setTimeout(showNextQuestion, 1800);
+        });
+
+        div.addEventListener("animationend", () => {
+          if (!answered) {
+            answered = true;
+            div.classList.add("wrong");
+            const allOptions = [...document.getElementsByClassName('option')];
+            allOptions.forEach(opt => opt.style.pointerEvents = "none");
+            allOptions.forEach(opt => {
+              if (opt.textContent === currentAnswer) opt.classList.add("correct");
+            });
+            feedbackEl.textContent = `⏱ Missed! Correct was "${currentAnswer}"`;
+            setTimeout(showNextQuestion, 1800);
+          }
+        });
+
+        gameArea.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>

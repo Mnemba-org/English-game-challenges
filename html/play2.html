@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sentence Completion Challenge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to right, #fef9ff, #e8f0ff);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    #question {
+      font-size: 20px;
+      margin: 25px 0;
+      font-weight: bold;
+    }
+
+    .option {
+      display: block;
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .option:hover {
+      background-color: #f1f8ff;
+    }
+
+    .option.correct {
+      background-color: #c8e6c9;
+      border-color: #2e7d32;
+    }
+
+    .option.wrong {
+      background-color: #ffcdd2;
+      border-color: #c62828;
+    }
+
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #result {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    #score-area {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+      margin-right: 10px;
+    }
+
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      display: none;
+    }
+
+    #play-again:hover {
+      background-color: #45a049;
+    }
+
+    #go-home {
+      background-color: #2196F3;
+      color: white;
+    }
+
+    #go-home:hover {
+      background-color: #1976d2;
+    }
+
+    #timer {
+      float: right;
+      font-weight: bold;
+      color: #e53935;
+    }
+
+    #progress-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    #progress-info span {
+      margin-right: 15px;
+    }
+
+    /* Hide quiz area before game starts */
+    #quiz-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Sentence Completion</h2>
+
+  <div style="text-align:center;">
+    <button id="start-btn">▶️ Start</button>
+  </div>
+
+  <div id="quiz-container">
+    <div id="progress-info">
+      <span id="current-question">Question 1 of 10</span>
+      <span id="current-score">Score: 0</span>
+      <span id="timer">Time: 10s</span>
+    </div>
+
+    <div id="question">Loading question...</div>
+    <div id="options"></div>
+    <div id="result"></div>
+
+    <div id="score-area">
+      <button id="play-again" onclick="startGame()">🔁 Start Again</button>
+      <button id="go-home" onclick="goToHomePage()">🏠 Back to Challenges</button>
+    </div>
+  </div>
+
+  <script>
+    const sentences = [
+      { text: "She ____ to school every morning.", answer: "goes", options: ["go", "going", "goes", "gone"] },
+      { text: "They ____ playing in the garden.", answer: "are", options: ["is", "am", "are", "were"] },
+      { text: "The dog ____ loudly last night.", answer: "barked", options: ["bark", "barked", "barking", "barks"] },
+      { text: "I will ____ you later.", answer: "call", options: ["calling", "calls", "called", "call"] },
+      { text: "He ____ a book when I saw him.", answer: "was reading", options: ["read", "is reading", "was reading", "reads"] },
+      { text: "We ____ to the beach last weekend.", answer: "went", options: ["go", "goes", "gone", "went"] },
+      { text: "She ____ very happy today.", answer: "looks", options: ["look", "looks", "looked", "looking"] },
+      { text: "The children ____ cartoons on TV.", answer: "watch", options: ["watch", "watches", "watching", "watched"] },
+      { text: "He ____ his homework before dinner.", answer: "finished", options: ["finish", "finishing", "finishes", "finished"] },
+      { text: "I ____ a sandwich for lunch.", answer: "ate", options: ["eat", "eats", "eating", "ate"] }
+    ];
+
+    let shuffled = [];
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 10;
+    let gameOver = false;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      gameOver = false;
+      shuffled = shuffle([...sentences]);
+      current = 0;
+      score = 0;
+      timeLeft = 10;
+      document.getElementById("play-again").style.display = "none";
+      document.getElementById("result").textContent = "";
+      document.getElementById("current-score").textContent = "Score: 0";
+      document.getElementById("timer").textContent = "Time: 10s";
+      document.getElementById("current-question").textContent = "Question 1 of 10";
+      document.getElementById("quiz-container").style.display = "block";
+      document.getElementById("start-btn").style.display = "none";
+      showQuestion();
+      startTimer();
+    }
+
+    function showQuestion() {
+      const q = shuffled[current];
+      document.getElementById("question").textContent = q.text;
+
+      const options = shuffle([...q.options]);
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      options.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.answer, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null); // Disable all
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+        document.getElementById("current-score").textContent = `Score: ${score}`;
+      } else {
+        element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      setTimeout(() => {
+        current++;
+        if (current < 10) {
+          document.getElementById("current-question").textContent = `Question ${current + 1} of 10`;
+          timeLeft = 10;
+          showQuestion();
+          startTimer();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function showFinalScore() {
+      gameOver = true;
+      document.getElementById("question").textContent = `🎉 Game Over! You scored ${score}/10`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("timer").textContent = "";
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", shuffled[current].answer, document.createElement("div")); // Auto wrong
+        }
+      }, 1000);
+    }
+
+    function goToHomePage() {
+      if (!gameOver) {
+        if (!confirm("Are you sure you want to leave the quiz? Your progress will be lost.")) {
+          return;
+        }
+      }
+      window.location.href = "challenges.html";
+    }
+
+    // Attach event listener for Start button
+    document.getElementById("start-btn").addEventListener("click", startGame);
+  </script>
+
+</body>
+</html>

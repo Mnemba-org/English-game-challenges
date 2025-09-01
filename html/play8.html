@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Word Scramble with Timer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f1f8ff;
+      text-align: center;
+      padding: 30px;
+    }
+    .game-container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    h2 {
+      color: #333;
+    }
+    .scrambled-word {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      margin: 20px 0;
+      color: #0077b6;
+    }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 18px;
+      width: 60%;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-submit { background-color: #007bff; color: #fff; }
+    .btn-restart { background-color: #28a745; color: #fff; }
+    .btn-home { background-color: #6c757d; color: #fff; }
+    .btn-start { background-color: #ff9800; color: #fff; }
+
+    #feedback { font-size: 18px; margin-top: 10px; }
+    .correct { color: green; font-weight: bold; }
+    .wrong { color: red; font-weight: bold; }
+    #score-info { font-weight: bold; margin-bottom: 15px; }
+    #timer {
+      font-size: 18px;
+      color: #d63333;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    #start-screen {
+      margin-top: 100px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Start Screen -->
+<div id="start-screen">
+  <h2>🔀 Word Scramble Challenge</h2>
+  <button class="btn-start" onclick="beginGame()">Start Game</button>
+</div>
+
+<!-- Game Area -->
+<div class="game-container" id="game-box">
+  <div id="score-info">
+    <span id="question-count">Question 1 of 10</span> |
+    <span id="current-score">Score: 0</span>
+  </div>
+  <div id="timer">⏳ Time left: <span id="time-left">15</span>s</div>
+  <div class="scrambled-word" id="scrambled-word">lpope</div>
+  <input type="text" id="user-input" placeholder="Unscramble the word" />
+  <br/>
+  <button class="btn-submit" onclick="submitAnswer()">Submit</button>
+  <div id="feedback"></div>
+  <div id="result" style="margin-top: 20px;"></div>
+  <button class="btn-restart" onclick="startGame()">🔁 Start Again</button>
+  <button class="btn-home" onclick="goToHome()">🏠 Back to Challenges</button>
+</div>
+
+<script>
+  const words = [
+    "challenge", "important", "complete", "friend", "answer", "language", "beautiful",
+    "different", "information", "education", "success", "motivation", "problem",
+    "solution", "interesting", "remember", "understand", "correct", "practice", "example"
+  ];
+
+  let selectedWords = [];
+  let currentIndex = 0;
+  let score = 0;
+  let timer;
+  let timeLeft = 15;
+  let gameOver = false;
+
+  const gameBox = document.getElementById("game-box");
+  const startScreen = document.getElementById("start-screen");
+
+  function beginGame() {
+    startScreen.style.display = "none";
+    gameBox.style.display = "block";
+    startGame();
+  }
+
+  function shuffleWord(word) {
+    const arr = word.split('');
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.join('');
+  }
+
+  function startGame() {
+    selectedWords = words.sort(() => 0.5 - Math.random()).slice(0, 10);
+    currentIndex = 0;
+    score = 0;
+    gameOver = false;
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("feedback").innerHTML = "";
+    document.getElementById("user-input").value = "";
+    document.getElementById("timer").style.display = "block";
+    showQuestion();
+  }
+
+  function showQuestion() {
+    clearInterval(timer);
+    timeLeft = 15;
+    updateTimer();
+
+    const word = selectedWords[currentIndex];
+    let scrambled = shuffleWord(word);
+    while (scrambled === word) {
+      scrambled = shuffleWord(word);
+    }
+
+    document.getElementById("scrambled-word").innerText = scrambled;
+    document.getElementById("question-count").innerText = `Question ${currentIndex + 1} of 10`;
+    document.getElementById("current-score").innerText = `Score: ${score}`;
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("user-input").value = "";
+
+    timer = setInterval(() => {
+      timeLeft--;
+      updateTimer();
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        handleTimeout();
+      }
+    }, 1000);
+  }
+
+  function updateTimer() {
+    document.getElementById("time-left").innerText = timeLeft;
+  }
+
+  function handleTimeout() {
+    const correctAnswer = selectedWords[currentIndex];
+    document.getElementById("feedback").innerHTML = `<span class="wrong">⏰ Time’s up! Correct: ${correctAnswer}</span>`;
+    currentIndex++;
+    if (currentIndex < 10) {
+      setTimeout(showQuestion, 2000);
+    } else {
+      setTimeout(showResult, 2000);
+    }
+  }
+
+  function submitAnswer() {
+    clearInterval(timer);
+    const userAnswer = document.getElementById("user-input").value.trim().toLowerCase();
+    const correctAnswer = selectedWords[currentIndex];
+
+    if (userAnswer === correctAnswer) {
+      score++;
+      document.getElementById("feedback").innerHTML = `<span class="correct">✔ Correct!</span>`;
+    } else {
+      document.getElementById("feedback").innerHTML = `<span class="wrong">❌ Wrong! Correct: ${correctAnswer}</span>`;
+    }
+
+    currentIndex++;
+    if (currentIndex < 10) {
+      setTimeout(showQuestion, 2000);
+    } else {
+      setTimeout(showResult, 2000);
+    }
+  }
+
+  function showResult() {
+    gameOver = true;
+    document.getElementById("result").innerHTML = `🎯 You scored <strong>${score}/10</strong>`;
+    document.getElementById("scrambled-word").innerText = "";
+    document.getElementById("user-input").value = "";
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("timer").style.display = "none";
+  }
+
+  function goToHome() {
+    if (!gameOver) {
+      const confirmExit = confirm("Are you sure you want to quit? Your progress will be lost.");
+      if (!confirmExit) return;
+    }
+    window.location.href = "challenges.html";
+  }
+</script>
+
+</body>
+</html>

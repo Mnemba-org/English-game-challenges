@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Preposition Practice</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f0f8ff, #e1f5fe);
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    #progress-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    #progress-info span {
+      margin-right: 20px;
+    }
+    #timer {
+      float: right;
+      color: #e53935;
+    }
+    #question {
+      font-size: 20px;
+      margin: 30px 0 20px;
+      font-weight: bold;
+    }
+    .option {
+      background: white;
+      border: 2px solid #ccc;
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      position: relative;
+    }
+    .option:hover {
+      background: #dceeff;
+    }
+    .option.correct {
+      background: #b9f6ca;
+      border-color: #2e7d32;
+    }
+    .option.wrong {
+      background: #ffcdd2;
+      border-color: #c62828;
+    }
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    #result {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #score-area {
+      text-align: center;
+      margin-top: 25px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      border: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      display: none;
+    }
+    #go-home {
+      background-color: #2196F3;
+      color: white;
+      display: none;
+    }
+    #back-challenges {
+      background-color: #2196F3;
+      color: white;
+      display: inline-block;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #back-challenges:hover {
+      background-color: #1769aa;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Preposition Practice</h2>
+
+  <div id="progress-info">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="current-score">Score: 0</span>
+    <span id="timer">Time: 15s</span>
+  </div>
+
+  <div id="question">Loading...</div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="score-area">
+    <button id="play-again" onclick="startGame()">🔁 Play Again</button>
+    <button id="go-home" onclick="goHome()">🏠 Back to Menu</button>
+    <button id="back-challenges" onclick="backToChallenges()">⬅️ Back to Challenges</button>
+  </div>
+
+  <script>
+    const questions = [
+      { sentence: "He was born ___ July.", correct: "in", options: ["in", "on", "at", "by"] },
+      { sentence: "We met ___ the bus stop.", correct: "at", options: ["on", "in", "at", "from"] },
+      { sentence: "The book is ___ the table.", correct: "on", options: ["on", "in", "by", "under"] },
+      { sentence: "They arrived ___ night.", correct: "at", options: ["at", "on", "in", "from"] },
+      { sentence: "I live ___ New York.", correct: "in", options: ["on", "at", "in", "to"] },
+      { sentence: "She walked ___ the park.", correct: "through", options: ["through", "over", "in", "on"] },
+      { sentence: "He went ___ the house quickly.", correct: "into", options: ["in", "on", "into", "to"] },
+      { sentence: "The cat is hiding ___ the sofa.", correct: "under", options: ["in", "on", "under", "behind"] },
+      { sentence: "We traveled ___ train.", correct: "by", options: ["on", "in", "by", "with"] },
+      { sentence: "They moved here ___ 2020.", correct: "in", options: ["at", "on", "in", "since"] }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+
+    function startGame() {
+      current = 0;
+      score = 0;
+      timeLeft = 15;
+      document.getElementById("play-again").style.display = "none";
+      document.getElementById("go-home").style.display = "none";
+      document.getElementById("back-challenges").style.display = "inline-block";
+      document.getElementById("result").textContent = "";
+      document.getElementById("current-score").textContent = "Score: 0";
+      document.getElementById("current-question").textContent = "Question 1 of 10";
+      document.getElementById("timer").textContent = "Time: 15s";
+      showQuestion();
+      startTimer();
+    }
+
+    function showQuestion() {
+      const q = questions[current];
+      document.getElementById("question").textContent = q.sentence;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.correct, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null);
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+        document.getElementById("current-score").textContent = `Score: ${score}`;
+      } else {
+        if (element) element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      setTimeout(() => {
+        current++;
+        if (current < questions.length) {
+          timeLeft = 15;
+          document.getElementById("current-question").textContent = `Question ${current + 1} of ${questions.length}`;
+          document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+          showQuestion();
+          startTimer();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", questions[current].correct, null);
+        }
+      }, 1000);
+    }
+
+    function showFinalScore() {
+      document.getElementById("question").textContent = `🎯 You scored ${score} out of ${questions.length}`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("timer").textContent = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("go-home").style.display = "inline-block";
+      document.getElementById("back-challenges").style.display = "none";
+    }
+
+    function goHome() {
+      window.location.href = "challenges.html"; // Adjust if needed
+    }
+
+    function backToChallenges() {
+      const confirmLeave = confirm("Are you sure you want to leave the game? Your progress will be lost.");
+      if (confirmLeave) {
+        window.location.href = "challenges.html"; // Adjust if needed
+      }
+    }
+
+    startGame();
+  </script>
+
+  <!-- Keep the original bottom link if you want, or remove it if redundant -->
+  <!-- <a href="challenges.html"><button>Go to challenges </button></a> -->
+
+</body>
+</html>

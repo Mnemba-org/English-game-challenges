@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Idioms & Meanings Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 750px;
+      margin: auto;
+      padding: 25px;
+      background: linear-gradient(to right, #fff8f0, #fdf3e7);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #d35400;
+    }
+
+    #progress-info {
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #score-display {
+      color: #27ae60;
+    }
+
+    #timer {
+      color: #e74c3c;
+    }
+
+    #question {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 25px;
+    }
+
+    .option {
+      background: #fff;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: 0.3s ease;
+      position: relative;
+    }
+
+    .option:hover {
+      background-color: #fef5e7;
+    }
+
+    .option.correct {
+      background-color: #c8e6c9;
+      border-color: #27ae60;
+    }
+
+    .option.wrong {
+      background-color: #f8d7da;
+      border-color: #c0392b;
+    }
+
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #score-area {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 5px 0 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #start-game {
+      background-color: #e67e22;
+      color: white;
+    }
+
+    #play-again {
+      background-color: #27ae60;
+      color: white;
+      display: none;
+    }
+
+    #go-home {
+      background-color: #2980b9;
+      color: white;
+      display: inline-block;
+    }
+
+    #start-game:hover {
+      background-color: #d35400;
+    }
+
+    #play-again:hover {
+      background-color: #1e8449;
+    }
+
+    #go-home:hover {
+      background-color: #1f618d;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Idioms & Meanings Quiz</h2>
+
+  <div id="progress-info">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="score-display">Score: 0/10</span>
+    <span id="timer">⏱ 60s</span>
+  </div>
+
+  <div id="question">Click "Start Game" to begin.</div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="score-area">
+    <button id="start-game" onclick="startGame()">▶️ Start Game</button>
+    <button id="play-again" onclick="startGame()">🔁 Start Again</button>
+    <button id="go-home" onclick="goToHomePage()">🏠 Back to Challenges</button>
+  </div>
+
+  <script>
+    const idioms = [
+      { idiom: "Break the ice", meaning: "To initiate conversation in a social setting" },
+      { idiom: "Spill the beans", meaning: "To reveal a secret" },
+      { idiom: "Hit the sack", meaning: "To go to bed" },
+      { idiom: "Let the cat out of the bag", meaning: "To accidentally reveal a secret" },
+      { idiom: "Under the weather", meaning: "Feeling sick or unwell" },
+      { idiom: "Piece of cake", meaning: "Something very easy" },
+      { idiom: "Once in a blue moon", meaning: "Happens very rarely" },
+      { idiom: "Cost an arm and a leg", meaning: "Very expensive" },
+      { idiom: "Hit the nail on the head", meaning: "Say something exactly right" },
+      { idiom: "Kick the bucket", meaning: "To die" },
+      { idiom: "Bite the bullet", meaning: "To bravely face a painful situation" },
+      { idiom: "When pigs fly", meaning: "Something that will never happen" },
+      { idiom: "Break a leg", meaning: "Good luck!" },
+      { idiom: "Call it a day", meaning: "Stop working for the day" },
+      { idiom: "The ball is in your court", meaning: "It’s your decision now" },
+      { idiom: "Burn the midnight oil", meaning: "Work late into the night" },
+      { idiom: "Pull someone’s leg", meaning: "To joke or tease someone" },
+      { idiom: "Back to the drawing board", meaning: "Start over after failure" },
+      { idiom: "Speak of the devil", meaning: "The person you’re talking about just arrived" },
+      { idiom: "Feeling blue", meaning: "Feeling sad" }
+    ];
+
+    let shuffledIdioms = [];
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 60;
+    let gameOver = true;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      shuffledIdioms = shuffle([...idioms]).slice(0, 10);
+      current = 0;
+      score = 0;
+      timeLeft = 60;
+      gameOver = false;
+      document.getElementById("play-again").style.display = "none";
+      document.getElementById("result").textContent = "";
+      document.getElementById("start-game").style.display = "none";
+      updateProgressDisplay();
+      showQuestion();
+      startTimer();
+    }
+
+    function showQuestion() {
+      const q = shuffledIdioms[current];
+      document.getElementById("question").textContent = `What does "${q.idiom}" mean?`;
+
+      let wrongOptions = shuffle(idioms.filter(i => i.idiom !== q.idiom)).slice(0, 3).map(i => i.meaning);
+      let allOptions = shuffle([q.meaning, ...wrongOptions]);
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      allOptions.forEach(option => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.textContent = option;
+        div.onclick = () => checkAnswer(option, q.meaning, div);
+        optionsDiv.appendChild(div);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null);
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+      } else {
+        element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      updateProgressDisplay();
+
+      setTimeout(() => {
+        current++;
+        if (current < 10 && timeLeft > 0) {
+          updateProgressDisplay();
+          showQuestion();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function updateProgressDisplay() {
+      document.getElementById("current-question").textContent = `Question ${Math.min(current + 1, 10)} of 10`;
+      document.getElementById("score-display").textContent = `Score: ${score}/10`;
+    }
+
+    function showFinalScore() {
+      clearInterval(timer);
+      gameOver = true;
+      document.getElementById("question").textContent = `🎉 You scored ${score}/10`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("start-game").style.display = "inline-block";
+      document.getElementById("timer").textContent = "";
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `⏱ ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          showFinalScore();
+        }
+      }, 1000);
+    }
+
+    function goToHomePage() {
+      if (!gameOver) {
+        const confirmExit = confirm("Game is in progress. Are you sure you want to go back? Your progress will be lost.");
+        if (!confirmExit) return;
+      }
+      window.location.href = "challenges.html";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fast Vocabulary Quiz</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to right, #f9f9f9, #d0e7ff);
+      color: #222;
+      text-align: center;
+    }
+    h2 {
+      color: #2c3e50;
+    }
+    #question {
+      font-size: 22px;
+      margin: 25px 0;
+      font-weight: bold;
+    }
+    .option {
+      display: block;
+      margin: 12px auto;
+      padding: 12px 16px;
+      width: 80%;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .option:hover {
+      background-color: #e0f0ff;
+    }
+    .option.correct {
+      background-color: #c8e6c9;
+      border-color: #2e7d32;
+    }
+    .option.wrong {
+      background-color: #ffcdd2;
+      border-color: #c62828;
+    }
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    #timer {
+      float: right;
+      font-weight: bold;
+      color: #d32f2f;
+    }
+    #progress-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    #result {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    #score-area {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      display: none;
+    }
+    #play-again:hover {
+      background-color: #45a049;
+    }
+    #go-home {
+      background-color: #2196F3;
+      color: white;
+    }
+    #go-home:hover {
+      background-color: #1976d2;
+    }
+    #start-btn {
+      background-color: #f39c12;
+      color: white;
+    }
+    #start-btn:hover {
+      background-color: #e67e22;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Fast Vocabulary Quiz</h2>
+
+  <div id="progress-info" style="display:none;">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="current-score">Score: 0</span>
+    <span id="timer">Time: 7s</span>
+  </div>
+
+  <div id="question" style="display:none;">Loading question...</div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="score-area">
+    <button id="start-btn" onclick="startGame()">▶ Start Game</button>
+    <button id="play-again" onclick="startGame()">🔁 Play Again</button>
+    <button id="go-home" onclick="confirmQuit()">🏠 Back to Challenges</button>
+  </div>
+
+  <script>
+    const vocabulary = [
+      { word: "Happy", answer: "Joyful", options: ["Joyful", "Sad", "Angry", "Tired"] },
+      { word: "Fast", answer: "Quick", options: ["Slow", "Quick", "Late", "Calm"] },
+      { word: "Big", answer: "Large", options: ["Small", "Large", "Tiny", "Short"] },
+      { word: "Smart", answer: "Intelligent", options: ["Intelligent", "Weak", "Lazy", "Happy"] },
+      { word: "Cold", answer: "Chilly", options: ["Hot", "Chilly", "Warm", "Dry"] },
+      { word: "Strong", answer: "Powerful", options: ["Weak", "Powerful", "Thin", "Soft"] },
+      { word: "Easy", answer: "Simple", options: ["Complex", "Simple", "Hard", "Difficult"] },
+      { word: "Bright", answer: "Shiny", options: ["Dark", "Dull", "Shiny", "Flat"] },
+      { word: "Clean", answer: "Neat", options: ["Dirty", "Messy", "Neat", "Rough"] },
+      { word: "Quiet", answer: "Silent", options: ["Loud", "Silent", "Noisy", "Fast"] },
+    ];
+
+    let shuffled = [];
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 7;
+    let gameEnded = false;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      shuffled = shuffle([...vocabulary]);
+      current = 0;
+      score = 0;
+      timeLeft = 7;
+      gameEnded = false;
+
+      document.getElementById("start-btn").style.display = "none";
+      document.getElementById("play-again").style.display = "none";
+      document.getElementById("result").textContent = "";
+      document.getElementById("current-score").textContent = "Score: 0";
+      document.getElementById("timer").textContent = "Time: 7s";
+      document.getElementById("current-question").textContent = "Question 1 of 10";
+      document.getElementById("progress-info").style.display = "block";
+      document.getElementById("question").style.display = "block";
+      showQuestion();
+      startTimer();
+    }
+
+    function showQuestion() {
+      const q = shuffled[current];
+      document.getElementById("question").textContent = `What is a synonym of "${q.word}"?`;
+
+      const options = shuffle([...q.options]);
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      options.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.answer, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null);
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+        document.getElementById("current-score").textContent = `Score: ${score}`;
+      } else {
+        element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      setTimeout(() => {
+        current++;
+        if (current < 10) {
+          document.getElementById("current-question").textContent = `Question ${current + 1} of 10`;
+          timeLeft = 7;
+          showQuestion();
+          startTimer();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function showFinalScore() {
+      gameEnded = true;
+      document.getElementById("question").textContent = `🎉 You scored ${score}/10`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("play-again").style.display = "inline-block";
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", shuffled[current].answer, document.createElement("div"));
+        }
+      }, 1000);
+    }
+
+    function confirmQuit() {
+      if (!gameEnded && current < 10) {
+        const confirmLeave = confirm("⚠ Are you sure you want to leave the game?");
+        if (confirmLeave) {
+          window.location.href = "challenges.html";
+        }
+      } else {
+        window.location.href = "challenges.html";
+      }
+    }
+
+    // Game starts only when user clicks Start
+  </script>
+
+</body>
+</html>

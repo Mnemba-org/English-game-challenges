@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Narrative Listening Quiz Game</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #f0f4f8;
+    color: #333;
+  }
+  h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 15px;
+  }
+  #score-timer {
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+  #status {
+    margin: 10px 0 15px 0;
+    font-style: italic;
+    font-weight: 600;
+    text-align: center;
+    min-height: 24px;
+  }
+  #options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  button.option-btn {
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 2px solid #3498db;
+    background: white;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  button.option-btn:hover:not(:disabled) {
+    background-color: #ecf0f1;
+  }
+  button.option-btn.correct {
+    border-color: green;
+    background-color: #d4edda;
+    cursor: default;
+  }
+  button.option-btn.wrong {
+    border-color: red;
+    background-color: #f8d7da;
+    cursor: default;
+  }
+  #controls {
+    margin-top: 20px;
+    text-align: center;
+  }
+  #play-btn, #next-btn {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    margin: 0 10px;
+    transition: background-color 0.3s;
+  }
+  #play-btn:disabled, #next-btn:disabled {
+    background-color: #a0bcd9;
+    cursor: default;
+  }
+  #next-btn {
+    display: none;
+  }
+  #back-btn {
+    margin-top: 25px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background-color: #2980b9;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  #back-btn:hover {
+    background-color: #1c5980;
+  }
+</style>
+</head>
+<body>
+
+<h2>Narrative Listening Quiz Game</h2>
+<div id="score-timer">Question <span id="q-num">1</span>/10 &nbsp;&nbsp;|&nbsp;&nbsp; Score: <span id="score">0</span></div>
+<div id="status">Click "Play Narrative" to listen.</div>
+
+<div id="options"></div>
+
+<div id="controls">
+  <button id="play-btn">Play Narrative</button>
+  <button id="next-btn">Next Question</button>
+</div>
+
+<button id="back-btn">🏠 Back to Challenges</button>
+
+<script>
+  const narratives = [
+    {
+      text: `Last Saturday, I went to the park early in the morning. The weather was cool and refreshing. I saw many people jogging and children playing. After that, I bought some ice cream and sat by the lake enjoying the view.`,
+      options: [
+        "A visit to a busy market",
+        "A relaxing day at the park",
+        "A trip to the beach",
+        "A rainy day indoors"
+      ],
+      correctAnswer: "A relaxing day at the park"
+    },
+    {
+      text: `My friend recently got a new puppy. It is very playful and loves to chase balls. Every morning, we take it for a walk around the neighborhood. The puppy also likes to cuddle and sleep beside us in the evening.`,
+      options: [
+        "A story about a new pet puppy",
+        "How to train a dog",
+        "Visiting a zoo with animals",
+        "A lost puppy finding home"
+      ],
+      correctAnswer: "A story about a new pet puppy"
+    },
+    {
+      text: `During the summer holidays, I traveled to the mountains with my family. We camped near a beautiful lake and enjoyed hiking on trails. At night, we sat around the campfire telling stories and roasting marshmallows.`,
+      options: [
+        "A winter ski trip",
+        "Camping in the mountains during summer",
+        "A day at the amusement park",
+        "Fishing in the river"
+      ],
+      correctAnswer: "Camping in the mountains during summer"
+    },
+    {
+      text: `Yesterday, I cooked a delicious dinner for my family. I prepared grilled chicken with roasted vegetables and a fresh salad. Everyone loved the meal and asked me to cook it again soon.`,
+      options: [
+        "Eating out at a restaurant",
+        "Cooking a family dinner",
+        "Shopping for groceries",
+        "A birthday party celebration"
+      ],
+      correctAnswer: "Cooking a family dinner"
+    },
+    {
+      text: `Every morning, I wake up early to exercise. I like to jog around the neighborhood and do some stretches. Exercising helps me feel energetic and ready for the day ahead.`,
+      options: [
+        "A morning exercise routine",
+        "Sleeping late on weekends",
+        "Watching TV in the morning",
+        "Preparing breakfast"
+      ],
+      correctAnswer: "A morning exercise routine"
+    },
+    {
+      text: `Last weekend, I visited a museum with my classmates. We saw many interesting exhibits about history and science. The guide explained everything clearly and we had fun learning new things.`,
+      options: [
+        "A visit to the museum with classmates",
+        "Going to a movie theater",
+        "Playing sports outside",
+        "Cooking at home"
+      ],
+      correctAnswer: "A visit to the museum with classmates"
+    },
+    {
+      text: `On my birthday, my friends surprised me with a party. There was cake, balloons, and music. We danced all night and enjoyed the celebration together.`,
+      options: [
+        "A surprise birthday party",
+        "A wedding celebration",
+        "A picnic in the park",
+        "A school event"
+      ],
+      correctAnswer: "A surprise birthday party"
+    },
+    {
+      text: `Every weekend, I like to read books in my favorite chair. I enjoy stories about adventures and mysteries. Reading helps me relax and imagine new worlds.`,
+      options: [
+        "Watching movies on weekends",
+        "Reading books for fun",
+        "Playing video games",
+        "Doing homework"
+      ],
+      correctAnswer: "Reading books for fun"
+    },
+    {
+      text: `Yesterday, the weather was very rainy. I stayed indoors and watched the raindrops fall outside. It was a perfect day to drink hot tea and listen to music.`,
+      options: [
+        "A sunny day at the beach",
+        "A rainy day spent indoors",
+        "Playing outside in the rain",
+        "A snow day"
+      ],
+      correctAnswer: "A rainy day spent indoors"
+    },
+    {
+      text: `My brother loves to play football every evening. He practices kicking the ball and running fast. Sometimes, I join him and we have a great time playing together.`,
+      options: [
+        "Playing football with family",
+        "Watching football on TV",
+        "Going to a concert",
+        "Riding bikes in the park"
+      ],
+      correctAnswer: "Playing football with family"
+    }
+  ];
+
+  let currentQuestion = 0;
+  let score = 0;
+  let utterance;
+  const speechSynth = window.speechSynthesis;
+  let gameOver = false;
+
+  const qNumSpan = document.getElementById("q-num");
+  const scoreSpan = document.getElementById("score");
+  const statusDiv = document.getElementById("status");
+  const optionsDiv = document.getElementById("options");
+  const playBtn = document.getElementById("play-btn");
+  const nextBtn = document.getElementById("next-btn");
+  const backBtn = document.getElementById("back-btn");
+
+  function shuffle(array) {
+    for(let i = array.length -1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function loadQuestion(){
+    statusDiv.textContent = 'Click "Play Narrative" to listen.';
+    qNumSpan.textContent = currentQuestion + 1;
+    scoreSpan.textContent = score;
+    optionsDiv.innerHTML = "";
+    nextBtn.style.display = "none";
+    playBtn.disabled = false;
+    gameOver = false;
+
+    // shuffle options for randomness
+    const shuffledOptions = shuffle([...narratives[currentQuestion].options]);
+
+    shuffledOptions.forEach(option => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = option;
+      btn.disabled = true;  // disable until narrative finishes playing
+      btn.onclick = () => selectAnswer(btn, option);
+      optionsDiv.appendChild(btn);
+    });
+  }
+
+  function playNarrative(){
+    if(speechSynth.speaking){
+      speechSynth.cancel(); // stop current if playing
+    }
+    playBtn.disabled = true;
+    statusDiv.textContent = "Listening...";
+
+    utterance = new SpeechSynthesisUtterance(narratives[currentQuestion].text);
+    utterance.lang = "en-US";
+    utterance.rate = 1;
+
+    utterance.onend = () => {
+      statusDiv.textContent = "Choose the correct answer:";
+      // enable options after audio ends
+      [...optionsDiv.children].forEach(btn => btn.disabled = false);
+      playBtn.disabled = false; // allow replay
+    };
+
+    speechSynth.speak(utterance);
+  }
+
+  function selectAnswer(button, selectedOption){
+    // disable all options & play btn
+    [...optionsDiv.children].forEach(btn => btn.disabled = true);
+    playBtn.disabled = true;
+
+    const correct = narratives[currentQuestion].correctAnswer;
+
+    if(selectedOption === correct){
+      button.classList.add("correct");
+      score++;
+      statusDiv.textContent = "Correct!";
+    } else {
+      button.classList.add("wrong");
+      statusDiv.textContent = `Wrong! Correct answer: "${correct}".`;
+      // highlight correct answer
+      [...optionsDiv.children].forEach(btn => {
+        if(btn.textContent === correct){
+          btn.classList.add("correct");
+        }
+      });
+    }
+    scoreSpan.textContent = score;
+    nextBtn.style.display = "inline-block";
+  }
+
+  function nextQuestion(){
+    currentQuestion++;
+    if(currentQuestion >= narratives.length){
+      // Game over
+      statusDiv.textContent = `Game Over! Your final score is ${score} out of ${narratives.length}.`;
+      optionsDiv.innerHTML = "";
+      playBtn.style.display = "none";
+      nextBtn.style.display = "none";
+      gameOver = true;
+    } else {
+      loadQuestion();
+    }
+  }
+
+  playBtn.addEventListener("click", playNarrative);
+  nextBtn.addEventListener("click", nextQuestion);
+
+  backBtn.addEventListener("click", () => {
+    if(!gameOver){
+      const leave = confirm("You are still playing. Are you sure you want to leave?");
+      if(!leave) return; // cancel leaving
+    }
+    window.location.href = "challenges.html";
+  });
+
+  loadQuestion();
+
+</script>
+
+</body>
+</html>

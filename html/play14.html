@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Phrasal Verb Challenge Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to right, #f4faff, #e8f0ff);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    #progress-info {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #score-display {
+      color: #2e7d32;
+    }
+
+    #timer {
+      color: #e53935;
+    }
+
+    #question {
+      font-size: 20px;
+      margin: 25px 0;
+      font-weight: bold;
+    }
+
+    .option {
+      display: block;
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      position: relative;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+    }
+
+    .option:hover {
+      background-color: #e3f2fd;
+    }
+
+    .option.correct {
+      background-color: #c8e6c9;
+      border-color: #2e7d32;
+    }
+
+    .option.wrong {
+      background-color: #ffcdd2;
+      border-color: #c62828;
+    }
+
+    .option.correct::after {
+      content: "✔️";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .option.wrong::after {
+      content: "❌";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #result {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    #score-area {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 5px 0 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #start-game {
+      background-color: #e67e22;
+      color: white;
+    }
+
+    #play-again {
+      background-color: #27ae60;
+      color: white;
+      display: none;
+    }
+
+    #go-home {
+      background-color: #2980b9;
+      color: white;
+    }
+
+    #start-game:hover {
+      background-color: #d35400;
+    }
+
+    #play-again:hover {
+      background-color: #1e8449;
+    }
+
+    #go-home:hover {
+      background-color: #1f618d;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Phrasal Verb Challenge</h2>
+
+  <div id="progress-info">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="score-display">Score: 0/10</span>
+    <span id="timer">⏱ 20s</span>
+  </div>
+
+  <div id="question">Click "Start Game" to begin.</div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="score-area">
+    <button id="start-game" onclick="startGame()">▶️ Start Game</button>
+    <button id="play-again" onclick="startGame()">🔁 Play Again</button>
+    <button id="go-home" onclick="goToHomePage()">🏠 Back to Challenges</button>
+  </div>
+
+  <script>
+    const phrasalVerbs = [
+      { verb: "give up", meaning: "to stop trying", options: ["to stop trying", "to turn on", "to look after", "to break down"] },
+      { verb: "turn on", meaning: "to activate", options: ["to deactivate", "to activate", "to give up", "to pick up"] },
+      { verb: "look after", meaning: "to take care of", options: ["to leave behind", "to take care of", "to give up", "to make up"] },
+      { verb: "break down", meaning: "to stop working", options: ["to continue", "to stop working", "to give up", "to turn off"] },
+      { verb: "pick up", meaning: "to collect someone or something", options: ["to collect someone or something", "to break", "to give up", "to turn on"] },
+      { verb: "make up", meaning: "to reconcile", options: ["to separate", "to argue", "to reconcile", "to leave"] },
+      { verb: "run out of", meaning: "to have none left", options: ["to have none left", "to buy more", "to sell", "to break"] },
+      { verb: "put off", meaning: "to postpone", options: ["to postpone", "to do immediately", "to stop", "to turn on"] },
+      { verb: "call off", meaning: "to cancel", options: ["to confirm", "to start", "to cancel", "to postpone"] },
+      { verb: "set up", meaning: "to arrange or organize", options: ["to break", "to arrange or organize", "to ignore", "to postpone"] },
+    ];
+
+    let questions = [];
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 20;
+    let gameOver = true;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      questions = shuffle([...phrasalVerbs]);
+      current = 0;
+      score = 0;
+      timeLeft = 20;
+      gameOver = false;
+      document.getElementById("result").textContent = "";
+      document.getElementById("start-game").style.display = "none";
+      document.getElementById("play-again").style.display = "none";
+      updateScoreDisplay();
+      document.getElementById("current-question").textContent = `Question 1 of ${questions.length}`;
+      document.getElementById("timer").textContent = `⏱ ${timeLeft}s`;
+      showQuestion();
+      startTimer();
+    }
+
+    function showQuestion() {
+      const q = questions[current];
+      document.getElementById("question").innerHTML = `What is the meaning of "<strong>${q.verb}</strong>"?`;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      const optionsShuffled = shuffle([...q.options]);
+      optionsShuffled.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.meaning, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const allOptions = document.querySelectorAll(".option");
+      allOptions.forEach(opt => opt.onclick = null);
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+        document.getElementById("result").textContent = "Correct!";
+      } else {
+        element.classList.add("wrong");
+        document.getElementById("result").textContent = `Wrong! Correct answer: "${correct}".`;
+        allOptions.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      updateScoreDisplay();
+
+      setTimeout(() => {
+        current++;
+        if (current < questions.length) {
+          timeLeft = 20;
+          document.getElementById("result").textContent = "";
+          document.getElementById("current-question").textContent = `Question ${current + 1} of ${questions.length}`;
+          showQuestion();
+          startTimer();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById("score-display").textContent = `Score: ${score}/${questions.length}`;
+    }
+
+    function showFinalScore() {
+      clearInterval(timer);
+      gameOver = true;
+      document.getElementById("question").textContent = `🎉 Game Over! You scored ${score} out of ${questions.length}`;
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("result").textContent = "";
+      document.getElementById("play-again").style.display = "inline-block";
+      document.getElementById("start-game").style.display = "inline-block";
+      document.getElementById("timer").textContent = "";
+      document.getElementById("current-question").textContent = "";
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `⏱ ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", questions[current].meaning, document.createElement("div"));
+        }
+      }, 1000);
+    }
+
+    function goToHomePage() {
+      if (!gameOver) {
+        const confirmLeave = confirm("Game is in progress. Are you sure you want to leave? Progress will be lost.");
+        if (!confirmLeave) return;
+      }
+      window.location.href = "challenges.html";
+    }
+  </script>
+</body>
+</html>

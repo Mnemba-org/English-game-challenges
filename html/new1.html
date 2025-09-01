@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listening Comprehension Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      background-color: #1976D2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #145ca6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎧 Listen and Explain</h2>
+
+  <button onclick="playStory()">🔊 Play Voice</button>
+
+  <p><strong>Instructions:</strong> Listen carefully to the story. Then explain what you understood by writing it below.</p>
+
+  <textarea id="answer" placeholder="Type what you understood from the story..."></textarea>
+  <br>
+  <button onclick="gradeAnswer()">✅ Submit Answer</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function playStory() {
+      const text = "In a quiet village near a large forest, there lived a young girl named Amina. Amina was known for her kindness and her love for animals. Every morning, she would feed the birds, play with the village dogs, and help her grandmother tend to the goats. One sunny afternoon, while exploring deeper into the forest, she heard a soft cry. Following the sound, she discovered a turtle trapped under a fallen branch. Gently, Amina helped lift the branch and freed the turtle. To her surprise, the turtle began to speak! He introduced himself as Kito, the guardian of the forest. He thanked Amina for her kindness and told her that few humans still cared for nature the way she did. As a gift, Kito offered Amina the power to communicate with all animals. From that day on, Amina became the bridge between the people of the village and the creatures of the forest. She taught others to respect nature and live in harmony. Years later, the village became famous for its peaceful connection with the forest, all because of the kindness and courage of one young girl.";
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 1;
+      speechSynthesis.speak(utterance);
+    }
+
+    function gradeAnswer() {
+      const userAnswer = document.getElementById("answer").value.toLowerCase();
+
+      const keywords = [
+        "amina",
+        "girl",
+        "kindness",
+        "animals",
+        "forest",
+        "turtle",
+        "kito",
+        "speak",
+        "guardian",
+        "nature",
+        "gift",
+        "communicate",
+        "help",
+        "village",
+        "respect",
+        "harmony",
+        "trapped",
+        "creatures",
+        "bridge",
+        "courage"
+      ];
+
+      let score = 0;
+      for (let word of keywords) {
+        if (userAnswer.includes(word)) {
+          score++;
+        }
+      }
+
+      const totalScore = Math.min(score, 10); // Limit to 10 max
+      const result = document.getElementById("result");
+      result.innerHTML = `You scored ${totalScore}/10`;
+
+      if (totalScore >= 8) {
+        result.innerHTML += "<br>🎉 Excellent! You understood the story very well.";
+      } else if (totalScore >= 5) {
+        result.innerHTML += "<br>🙂 Good effort. Try to catch more details next time!";
+      } else {
+        result.innerHTML += "<br>😕 You missed a lot. Try listening again and focus more.";
+      }
+    }
+  </script>
+<a href="challenges.html"><button>🏠 Back to Challenges</button></a>
+</body>
+</html>

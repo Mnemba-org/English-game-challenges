@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spelling Check Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #fff3e0, #fff8e1);
+      text-align: center;
+      padding: 30px;
+      color: #6d4c41;
+    }
+
+    .game-container {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #ef6c00;
+    }
+
+    .question {
+      font-size: 1.3em;
+      margin-bottom: 20px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .options button {
+      padding: 12px;
+      background-color: #ffe0b2;
+      border: 2px solid #ef6c00;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: 0.3s;
+    }
+
+    .options button:hover {
+      background-color: #ffcc80;
+    }
+
+    #feedback {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+
+    .correct {
+      color: green;
+    }
+
+    .wrong {
+      color: red;
+    }
+
+    #scoreboard, #timer {
+      margin: 10px;
+      font-weight: bold;
+    }
+
+    #result {
+      font-size: 1.4em;
+      margin-top: 30px;
+    }
+
+    .btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #ef6c00;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #e65100;
+    }
+
+    .back-home {
+      margin-top: 15px;
+      display: inline-block;
+      color: #ef6c00;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <h2>🔤 Spelling Check Challenge</h2>
+    <button class="btn" onclick="beginGame()">Start Game</button>
+  </div>
+
+  <!-- Game Area -->
+  <div class="game-container" id="game" style="display: none;">
+    <div id="scoreboard">Score: 0/10</div>
+    <div id="timer">Time: 15s</div>
+    <div id="question-number">Question 1 of 10</div>
+
+    <div class="question" id="question">Which is the correct spelling?</div>
+    <div class="options" id="options"></div>
+
+    <div id="feedback"></div>
+    <div id="result"></div>
+
+    <button class="btn" onclick="startGame()">Play Again</button>
+    <br />
+    <a class="back-home" onclick="goToHomePage()">← Back to Challenges</a>
+  </div>
+
+  <script>
+    const questions = [
+      { wrong: "Recieve", correct: "Receive" },
+      { wrong: "Definately", correct: "Definitely" },
+      { wrong: "Seperate", correct: "Separate" },
+      { wrong: "Occured", correct: "Occurred" },
+      { wrong: "Acommodate", correct: "Accommodate" },
+      { wrong: "Embarass", correct: "Embarrass" },
+      { wrong: "Febuary", correct: "February" },
+      { wrong: "Adress", correct: "Address" },
+      { wrong: "Tommorow", correct: "Tomorrow" },
+      { wrong: "Writting", correct: "Writing" },
+      { wrong: "Beleive", correct: "Believe" },
+      { wrong: "Agressive", correct: "Aggressive" },
+      { wrong: "Collegue", correct: "Colleague" },
+      { wrong: "Happend", correct: "Happened" },
+      { wrong: "Realy", correct: "Really" }
+    ];
+
+    let score = 0;
+    let currentQuestion = 0;
+    let timer;
+    let timeLeft = 15;
+    let gameOver = false;
+
+    const startScreen = document.getElementById('start-screen');
+    const gameContainer = document.getElementById('game');
+
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function beginGame() {
+      startScreen.style.display = 'none';
+      gameContainer.style.display = 'block';
+      startGame();
+    }
+
+    function startGame() {
+      score = 0;
+      currentQuestion = 0;
+      gameOver = false;
+      shuffleArray(questions);
+      showQuestion();
+    }
+
+    function showQuestion() {
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("result").textContent = "";
+      document.getElementById("question-number").textContent = `Question ${currentQuestion + 1} of 10`;
+      document.getElementById("scoreboard").textContent = `Score: ${score}/10`;
+
+      timeLeft = 15;
+      document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          document.getElementById("feedback").innerHTML = `<span class="wrong">⛔ Time's up! Correct answer: ${questions[currentQuestion].correct}</span>`;
+          nextQuestionAfterDelay();
+        }
+      }, 1000);
+
+      const q = questions[currentQuestion];
+      const options = shuffleArray([q.correct, q.wrong]);
+      document.getElementById("question").textContent = `Which is the correct spelling?`;
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.correct);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct) {
+      clearInterval(timer);
+      if (selected === correct) {
+        score++;
+        document.getElementById("feedback").innerHTML = `<span class="correct">✔ Correct!</span>`;
+      } else {
+        document.getElementById("feedback").innerHTML = `<span class="wrong">❌ Wrong! Correct: ${correct}</span>`;
+      }
+      nextQuestionAfterDelay();
+    }
+
+    function nextQuestionAfterDelay() {
+      setTimeout(() => {
+        if (currentQuestion + 1 < 10) {
+          currentQuestion++;
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }, 1500);
+    }
+
+    function showResult() {
+      gameOver = true;
+      document.getElementById("question").textContent = "Game Over!";
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("result").innerHTML = `🎯 You scored <strong>${score}/10</strong>`;
+      document.getElementById("timer").textContent = "";
+      document.getElementById("question-number").textContent = "";
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function goToHomePage() {
+      if (!gameOver) {
+        const confirmExit = confirm("Are you sure you want to quit? Your progress will be lost.");
+        if (!confirmExit) return;
+      }
+      window.location.href = "challenges.html";
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listening & Typing Challenge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eaf4fc;
+      text-align: center;
+      padding: 30px;
+    }
+    .game-box {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 60%;
+      font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-submit {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-restart {
+      background-color: #28a745;
+      color: white;
+    }
+    .btn-home {
+      background-color: #6c757d;
+      color: white;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+    }
+    #feedback {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    #score-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    #start-screen {
+      margin-top: 100px;
+    }
+
+    .btn-start {
+      background-color: #ff9800;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Start Screen -->
+<div id="start-screen">
+  <h2>🎧 Listening & Typing Challenge</h2>
+  <button class="btn-start" onclick="beginGame()">Start Game</button>
+</div>
+
+<!-- Game Content -->
+<div class="game-box" id="game-box">
+  <div id="score-info">
+    <span id="question-count">Question 1 of 10</span> |
+    <span id="current-score">Score: 0</span>
+  </div>
+  <button onclick="playAudio()">🔊 Play Word</button><br/><br/>
+  <input type="text" id="user-input" placeholder="Type what you hear" />
+  <br/>
+  <button class="btn-submit" onclick="submitAnswer()">Submit</button>
+  <div id="feedback"></div>
+  <div id="result" style="margin-top: 20px;"></div>
+  <button class="btn-restart" onclick="startGame()">🔁 Start Again</button>
+  <button class="btn-home" onclick="goToHomePage()">🏠 Back to Challenges</button>
+</div>
+
+<script>
+  const words = [
+    "important", "challenge", "complete", "friend", "answer", "language", "beautiful", "opinion", "different", "information",
+    "education", "success", "motivation", "difficult", "problem", "solution", "interesting", "improve", "remember", "understand"
+  ];
+
+  let currentIndex = 0;
+  let score = 0;
+  let selectedWords = [];
+  let gameOver = false;
+
+  const startScreen = document.getElementById("start-screen");
+  const gameBox = document.getElementById("game-box");
+
+  function shuffleArray(arr) {
+    return arr.sort(() => 0.5 - Math.random());
+  }
+
+  function beginGame() {
+    startScreen.style.display = "none";
+    gameBox.style.display = "block";
+    startGame();
+  }
+
+  function startGame() {
+    selectedWords = shuffleArray(words).slice(0, 10);
+    currentIndex = 0;
+    score = 0;
+    gameOver = false;
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("feedback").innerHTML = "";
+    document.getElementById("user-input").value = "";
+    showQuestion();
+  }
+
+  function showQuestion() {
+    document.getElementById("question-count").innerText = `Question ${currentIndex + 1} of 10`;
+    document.getElementById("current-score").innerText = `Score: ${score}`;
+    document.getElementById("user-input").value = "";
+    document.getElementById("feedback").innerHTML = "";
+  }
+
+  function playAudio() {
+    const word = selectedWords[currentIndex];
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = "en-US";
+    speechSynthesis.speak(utterance);
+  }
+
+  function submitAnswer() {
+    const input = document.getElementById("user-input").value.trim().toLowerCase();
+    const correct = selectedWords[currentIndex];
+
+    if (input === correct) {
+      score++;
+      document.getElementById("feedback").innerHTML = `<span class="correct">✔ Correct!</span>`;
+    } else {
+      document.getElementById("feedback").innerHTML = `<span class="wrong">❌ Wrong! Correct word: <strong>${correct}</strong></span>`;
+    }
+
+    currentIndex++;
+
+    if (currentIndex < 10) {
+      setTimeout(showQuestion, 1500);
+    } else {
+      setTimeout(showResult, 2000);
+    }
+  }
+
+  function showResult() {
+    document.getElementById("result").innerHTML = `🎯 You scored <strong>${score}/10</strong>`;
+    document.getElementById("feedback").innerHTML = "";
+    document.getElementById("user-input").value = "";
+    gameOver = true;
+  }
+
+  function goToHomePage() {
+    if (!gameOver) {
+      const confirmExit = confirm("Are you sure you want to quit? Your progress will be lost.");
+      if (!confirmExit) return;
+    }
+    location.href = "challenges.html";
+  }
+
+  // Do not auto-start game — user will press "Start Game"
+</script>
+
+</body>
+</html>

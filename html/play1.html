@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vocabulary Challenge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      width: 90%;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to right, #f2f7ff, #e6f0ff);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    #question {
+      font-size: 20px;
+      margin: 25px 0;
+      font-weight: bold;
+    }
+
+    .option {
+      display: block;
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .option:hover {
+      background-color: #f1f8ff;
+    }
+
+    .option.correct {
+      background-color: #c8e6c9;
+      border-color: #2e7d32;
+    }
+
+    .option.wrong {
+      background-color: #ffcdd2;
+      border-color: #c62828;
+    }
+
+    .option::after {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+    }
+
+    .option.correct::after {
+      content: "✔️";
+    }
+
+    .option.wrong::after {
+      content: "❌";
+    }
+
+    #result {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    #score-area {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+    }
+
+    #start-btn {
+      background-color: #00897b;
+      color: white;
+    }
+
+    #start-btn:hover {
+      background-color: #00695c;
+    }
+
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      display: none;
+    }
+
+    #play-again:hover {
+      background-color: #45a049;
+    }
+
+    #go-home {
+      background-color: #2196F3;
+      color: white;
+      margin-left: 10px;
+    }
+
+    #go-home:hover {
+      background-color: #1976d2;
+    }
+
+    #timer {
+      float: right;
+      font-weight: bold;
+      color: #e53935;
+    }
+
+    #progress-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    #progress-info span {
+      margin-right: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Vocabulary Challenge</h2>
+
+  <button id="start-btn">Start Game</button>
+
+  <div id="progress-info" style="display:none;">
+    <span id="current-question">Question 1 of 10</span>
+    <span id="current-score">Score: 0</span>
+    <span id="timer">Time: 10s</span>
+  </div>
+
+  <div id="question" style="display:none;">Loading question...</div>
+  <div id="options"></div>
+  <div id="result"></div>
+
+  <div id="score-area" style="display:none;">
+    <button id="play-again" onclick="startGame()">🔁 Start Again</button>
+    <button id="go-home" onclick="goToHomePage()">🏠 Back to Challenges</button>
+  </div>
+
+  <script>
+    const words = [
+      { word: "Abandon", meaning: "To leave something behind" },
+      { word: "Brilliant", meaning: "Very bright or intelligent" },
+      { word: "Calm", meaning: "Peaceful and quiet" },
+      { word: "Damage", meaning: "Harm or injury" },
+      { word: "Eager", meaning: "Excited and enthusiastic" },
+      { word: "Famous", meaning: "Known by many people" },
+      { word: "Generous", meaning: "Willing to give or share" },
+      { word: "Hurry", meaning: "To move quickly" },
+      { word: "Idea", meaning: "A thought or suggestion" },
+      { word: "Joy", meaning: "Great happiness" },
+      { word: "Kind", meaning: "Nice and helpful" },
+      { word: "Lazy", meaning: "Not willing to work or move" },
+      { word: "Mend", meaning: "To fix something" },
+      { word: "Narrow", meaning: "Not wide" },
+      { word: "Obey", meaning: "To follow rules or commands" },
+      { word: "Polite", meaning: "Respectful and well-mannered" },
+      { word: "Quick", meaning: "Fast" },
+      { word: "Rare", meaning: "Not common" },
+      { word: "Safe", meaning: "Not dangerous" },
+      { word: "Tidy", meaning: "Neat and in order" },
+      { word: "Useful", meaning: "Helpful or beneficial" },
+      { word: "Value", meaning: "The worth of something" },
+      { word: "Wise", meaning: "Showing good judgment" },
+      { word: "X-ray", meaning: "A medical image of bones" },
+      { word: "Young", meaning: "Not old" },
+      { word: "Zeal", meaning: "Great energy or enthusiasm" },
+      { word: "Bright", meaning: "Giving off a lot of light or smart" },
+      { word: "Fear", meaning: "An unpleasant emotion caused by danger" },
+      { word: "Hope", meaning: "A feeling of expectation" },
+      { word: "Love", meaning: "Strong affection for someone" },
+      { word: "Peace", meaning: "Freedom from war or conflict" },
+      { word: "Run", meaning: "To move fast by foot" },
+      { word: "Speak", meaning: "To say something" },
+      { word: "Tell", meaning: "To say something to someone" },
+      { word: "Understand", meaning: "To know the meaning of something" },
+      { word: "Visit", meaning: "To go see someone or a place" },
+      { word: "Wait", meaning: "To stay until something happens" },
+      { word: "Yell", meaning: "To shout loudly" },
+      { word: "Zoom", meaning: "To move quickly" }
+    ];
+
+    let shuffled = [];
+    let current = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 10;
+    let gameOver = false;
+
+    const startBtn = document.getElementById("start-btn");
+    const progressInfo = document.getElementById("progress-info");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const resultEl = document.getElementById("result");
+    const scoreArea = document.getElementById("score-area");
+    const playAgainBtn = document.getElementById("play-again");
+
+    startBtn.addEventListener("click", () => {
+      startBtn.style.display = "none";
+      progressInfo.style.display = "block";
+      questionEl.style.display = "block";
+      scoreArea.style.display = "block";
+      startGame();
+    });
+
+    function startGame() {
+      gameOver = false;
+      shuffled = shuffle([...words]).slice(0, 10);
+      current = 0;
+      score = 0;
+      timeLeft = 10;
+      playAgainBtn.style.display = "none";
+      resultEl.textContent = "";
+      document.getElementById("current-score").textContent = "Score: 0";
+      document.getElementById("timer").textContent = "Time: 10s";
+      document.getElementById("current-question").textContent = "Question 1 of 10";
+      showQuestion();
+      startTimer();
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function showQuestion() {
+      const q = shuffled[current];
+      questionEl.textContent = `What is the meaning of: "${q.word}"?`;
+
+      const options = [q.meaning];
+      while (options.length < 4) {
+        const random = words[Math.floor(Math.random() * words.length)].meaning;
+        if (!options.includes(random)) {
+          options.push(random);
+        }
+      }
+
+      const shuffledOptions = shuffle([...options]);
+      optionsEl.innerHTML = "";
+
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, q.meaning, btn);
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, element) {
+      clearInterval(timer);
+      const options = document.querySelectorAll(".option");
+      options.forEach(opt => opt.onclick = null); // Disable all
+
+      if (selected === correct) {
+        element.classList.add("correct");
+        score++;
+        document.getElementById("current-score").textContent = `Score: ${score}`;
+      } else {
+        element.classList.add("wrong");
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add("correct");
+          }
+        });
+      }
+
+      setTimeout(() => {
+        current++;
+        if (current < 10) {
+          document.getElementById("current-question").textContent = `Question ${current + 1} of 10`;
+          timeLeft = 10;
+          showQuestion();
+          startTimer();
+        } else {
+          showFinalScore();
+        }
+      }, 1200);
+    }
+
+    function showFinalScore() {
+      gameOver = true;
+      questionEl.textContent = `🎉 Game Over! You scored ${score}/10`;
+      optionsEl.innerHTML = "";
+      playAgainBtn.style.display = "inline-block";
+      document.getElementById("timer").textContent = "";
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer("", shuffled[current].meaning, document.createElement("div")); // Auto wrong
+        }
+      }, 1000);
+    }
+
+    function goToHomePage() {
+      if (!gameOver) {
+        if (!confirm("Are you sure you want to leave the quiz? Your progress will be lost.")) {
+          return;
+        }
+      }
+      window.location.href = "challenges.html";
+    }
+  </script>
+</body>
+</html>
